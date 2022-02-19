@@ -54,22 +54,57 @@ int main(int argc, char *argv[]) {
     }
 }
 
-
 void *connection_handler(void *socket_d) {
     int socket = *(int *) socket_d;
-    int valread, i = 0;
+    int valread, i;
     char buffer[1024];
-    char ch;
+    char *temp, ch;
 
     bzero(buffer, 1024);
+    temp = malloc(sizeof(char));
 
-    while ((valread = recv(socket, buffer, 1024, MSG_DONTWAIT)) > 0) {
-        if (strcmp(buffer, "END") == 0) {
+    int temp_sz = 1;
+
+    while ((valread = recv(socket, buffer, 1024, 0)) > 0) {
+        /* if (strcmp(buffer, "END") == 0) {
             printf("[INFO %d] Connection terminated by client.\n", socket);
             free(socket_d);
             return 0;
         }
         printf("[COMM FR: %d] %s\n", socket, buffer);
+        bzero(buffer, 1024); */
+
+        i = 0;
+
+        while (i < valread) {
+            if (buffer[i] == '\0') {
+                temp[temp_sz - 1] = '\0';
+
+                if (strcmp(temp, "END") == 0) {
+                    printf("[INFO %d] Connection terminated by client.\n", socket);
+                    free(temp);
+                    free(socket_d);
+                    return 0;
+                }
+
+                else {
+                    printf("[COMM FR: %d] %s\n", socket, buffer);
+                }
+
+                free(temp);
+                temp = malloc(sizeof(char));
+                temp_sz = 1;
+            }
+
+            else {
+                temp[temp_sz - 1] = buffer[i];
+                temp = realloc(temp, sizeof(temp) + 1);
+                temp_sz++;
+            }
+
+            i++;
+        }
+
         bzero(buffer, 1024);
     }
 
@@ -83,5 +118,6 @@ void *connection_handler(void *socket_d) {
     }
 
     free(socket_d);
+    free(temp);
     return 0;
 }

@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
     #endif 
 
     #if 1
-    end_msg = "aaaaaaaa";
+    end_msg = "aaaaaaaaaaaaa";
     // for (int i = 0; i < 100; i++)
         send(socket_d, end_msg, strlen(end_msg) + 1, 0);
 
