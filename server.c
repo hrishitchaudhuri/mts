@@ -8,6 +8,8 @@
 
 #define PORT 8080
 
+#define MAX_BUFFER_SIZE 1024
+
 void *connection_handler(void *);
 
 int main(int argc, char *argv[]) {
@@ -54,7 +56,17 @@ int main(int argc, char *argv[]) {
     }
 }
 
+char *strappend(char *s1, char *s2) {
+    char *ret = malloc(strlen(s1) + strlen(s2) + 1);
+    strcpy(ret, s1);
+    strcat(ret, s2);
+
+    return ret;
+}
+
+
 void *connection_handler(void *socket_d) {
+    #if 1
     int socket = *(int *) socket_d;
     int valread, i;
     char buffer[1024];
@@ -64,17 +76,20 @@ void *connection_handler(void *socket_d) {
     temp = malloc(sizeof(char));
 
     int temp_sz = 1;
+    #endif
 
-    while ((valread = recv(socket, buffer, 1024, 0)) > 0) {
-        /* if (strcmp(buffer, "END") == 0) {
-            printf("[INFO %d] Connection terminated by client.\n", socket);
-            free(socket_d);
-            return 0;
+    #if 0
+    while (valread = recv(socket, buffer, 1024, 0) > 0) {
+        for (i = 0; i < valread; i++) {
+            printf("%c", buffer[i]);
         }
-        printf("[COMM FR: %d] %s\n", socket, buffer);
-        bzero(buffer, 1024); */
+    }
+    #endif
 
+    #if 1
+    while ((valread = recv(socket, buffer, 1024, 0)) > 0) {
         i = 0;
+        printf("[VAL_READ %d] %d bytes\n", socket, valread);
 
         while (i < valread) {
             if (buffer[i] == '\0') {
@@ -88,7 +103,8 @@ void *connection_handler(void *socket_d) {
                 }
 
                 else {
-                    printf("[COMM FR: %d] %s\n", socket, buffer);
+                    printf("[COMM FR: %d] %s\n", socket, temp);
+                    send(socket, temp, strlen(temp) + 1, 0);
                 }
 
                 free(temp);
@@ -98,7 +114,7 @@ void *connection_handler(void *socket_d) {
 
             else {
                 temp[temp_sz - 1] = buffer[i];
-                temp = realloc(temp, sizeof(temp) + 1);
+                temp = realloc(temp, strlen(temp) + 1);
                 temp_sz++;
             }
 
@@ -107,7 +123,9 @@ void *connection_handler(void *socket_d) {
 
         bzero(buffer, 1024);
     }
+    #endif
 
+    #if 1
     if (valread == 0) {
         printf("[INFO %d] Client disconnected.\n", socket);
         fflush(stdout);
@@ -120,4 +138,31 @@ void *connection_handler(void *socket_d) {
     free(socket_d);
     free(temp);
     return 0;
+    #endif
+
+    #if 0
+    char *buffer = malloc(MAX_BUFFER_SIZE);
+    char *result = malloc(sizeof(char));
+    result[0] = '\0';
+
+    char *temp;
+
+    int valread;
+    int socket = *(int *) socket_d;
+
+    while ((valread = recv(socket, buffer, MAX_BUFFER_SIZE - 1, 0)) > 0) {
+        buffer[valread] = '\0';
+
+        temp = result;
+        result = strappend(temp, buffer);
+
+        free(temp);
+    }
+
+    printf("%s\n", result);
+
+    free(buffer);
+    free(result);
+    return 0;
+    #endif
 }
