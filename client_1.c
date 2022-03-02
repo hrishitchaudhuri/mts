@@ -7,7 +7,7 @@
 
 #define PORT 8080
 
-#define MAX_BUFFER_SIZE 1024
+#define MAX_BUFFER_SIZE 1000000
 
 int main(int argc, char *argv[]) {
     int socket_d, ch, valread, i;
@@ -54,11 +54,23 @@ int main(int argc, char *argv[]) {
                 msg_size = strlen(message) + 1;
                 num_reads = ((strlen(message) + 1) / MAX_BUFFER_SIZE);
 
+                printf("[MSG_SIZE] %d\n[NUM_READS] %d\n", msg_size, num_reads);
+
+                /*
                 for (int j = 0; j < num_reads; j++) {
                     send(socket_d, message, MAX_BUFFER_SIZE, 0);
                 }
+                
 
                 send(socket_d, message, msg_size - (num_reads * MAX_BUFFER_SIZE), 0);
+                */
+                
+                send(socket_d, message, msg_size, 0);
+
+                if (strcmp(message, "END") == 0) {
+                    printf("Terminating connection...\n");
+                    return 0;
+                }
 
                 buffer = (char *) malloc(msg_size);
                 bzero(buffer, msg_size);
